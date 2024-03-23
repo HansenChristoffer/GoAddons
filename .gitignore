@@ -1,6 +1,40 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.test
 
-**/*.exe
-**/*.bin
-**/*.dll
+# Folders & Files related to Go
+bin/*
+!bin/.gitkeep
+/pkg/
+/vendor/
+*.log
 
-.idea/*
+# GoLand IDE folders and files
+.idea/
+*.iml
+
+# Visual Studio Code folders
+.vscode/
+
+# Other common directories to ignore
+tmp/
+temp/
+
+# Operating System Files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore environment files and folders
+.env
+.env.local
+
