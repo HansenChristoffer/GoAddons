@@ -20,13 +20,13 @@ Please follow these steps to have your contribution considered by the maintainer
 - Make sure your code lints
 - Issue that pull request!
 
-## Any contributions you make will be under the [Software License]
+## Any contributions you make will be under the [license](LICENSE)
 
-In short, when you submit code changes, your submissions are understood to be under the same [license] that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same [license](LICENSE) that covers the project. Feel free to contact the maintainers if that's a concern.
 
-## Report bugs using GitHub's [issues]
+## Report bugs using GitHub's [Issues](../../issues)
 
-Report a bug by [opening a new issue]; it's that easy!
+Report a bug by [opening a new issue](../../issues/new); it's that easy!
 
 ## Write bug reports with detail, background, and sample code
 
@@ -50,4 +50,4 @@ In short, don't be a jerk. Be respectful and considerate in your interactions.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its [license].
+By contributing, you agree that your contributions will be licensed under its [license](LICENSE).
