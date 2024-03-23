@@ -1,0 +1,42 @@
+# .github/labeler.yml
+
+"CLI Package":
+  - cli/**/*
+
+"Database Package":
+  - database/**/*
+
+"Init Package":
+  - init/**/*
+
+"Models Package":
+  - models/**/*
+
+"Net Package":
+  - net/**/*
+
+"System Package":
+  - system/**/*
+
+"Updater Package":
+  - updater/**/*
+
+"Utils Package":
+  - utils/**/*
+
+"Version Package":
+  - version/**/*
+
+"Main Package":
+  - "*"
+  - "!.github/**/*"
+  - "!database/**/*"
+  - "!cli/**/*"
+  - "!init/**/*"
+  - "!models/**/*"
+  - "!net/**/*"
+  - "!system/**/*"
+  - "!updater/**/*"
+  - "!utils/**/*"
+  - "!version/**/*"
+
