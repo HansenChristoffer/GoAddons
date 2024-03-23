@@ -15,13 +15,13 @@ To get started with GoAddons, follow these simple steps:
 1. **Clone the repository**:
 
 ```bash
-git clone https://github.com/yourusername/GoAddons.git
+git clone https://github.com/HansenChristoffer/GoAddons.git
 cd GoAddons
 ```
 
 2. **Docker containers**:
 
-Make sure you have Docker/Docker-engine and docker-compose installed on your system. Now, run the following command:
+Make sure you have Docker/Docker-engine and Docker-compose installed on your system. Now, run the following command:
 
 ```bash
 docker-compose up -d
