@@ -19,7 +19,17 @@ git clone https://github.com/yourusername/GoAddons.git
 cd GoAddons
 ```
 
-2. **Build the application**:
+2. **Docker containers**:
+
+Make sure you have Docker/Docker-engine and docker-compose installed on your system. Now, run the following command:
+
+```bash
+docker-compose up -d
+```
+
+This command will pull the relevant Docker images, create volumes and create containers that GoAddons will need to use.
+
+4. **Build the application**:
 
 Make sure you have Go installed on your system. You can build GoAddons using the provided Makefile for convenience:
 
@@ -36,6 +46,18 @@ This command compiles the application and places the binary in the `bin` directo
 ```
 
 Follow the on-screen prompts to manage your WoW addons.
+
+## Note
+
+If you're planning on doing any **Addon Management**, you need to make sure that your **'tanukiDB'** container is up and running.
+
+Also, keep in mind that if you're going to run the **Updater**, you need to make sure the Docker container called **'goaddons_cdp'** is up and running.
+
+You can check what containers are currently up-and-running by executing the following:
+
+```bash
+docker ps
+```
 
 ## Usage
 
@@ -63,7 +85,7 @@ In the Addon Management menu, you can:
 
 ### Updater Menu
 
-Start the updater to check for and apply updates to your addons.
+Start the updater ~~to check for~~ and apply updates to your addons.
 
 ### About
 
