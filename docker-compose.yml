@@ -1,0 +1,44 @@
+# This file is part of GoAddons, which is licensed under the GNU General Public License v3.0.
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+
+version: '3.1'
+
+services:
+  tanukiDB:
+    image: mariadb:latest
+    container_name: tanukiDB
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: tanushi
+      MYSQL_PASSWORD: shitanu
+    volumes:
+      - tanuki-db-volume:/var/lib/mysql
+      - ./init:/data/application
+    ports:
+      - "3306:3306"
+    command: --init-file /data/application/init.sql
+
+  goaddons_cdp:
+    image: chromedp/headless-shell
+    container_name: goaddons_cdp
+    ports:
+      - "9222:9222"
+    volumes:
+      - kaasufouji-addons-volume:/home/miso/Downloads/kaasufouji-addons
+      - kaasufouji-extract-volume:/home/miso/Downloads/extract-addons
+
+volumes:
+  tanuki-db-volume:
+  kaasufouji-addons-volume:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/miso/Downloads/kaasufouji-addons
+      o: bind
+  kaasufouji-extract-volume:
+    driver: local
+    driver_opts:
+      type: none
+      device: "/home/miso/ssd/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns"
+      o: bind
