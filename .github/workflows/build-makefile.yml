@@ -1,0 +1,36 @@
+name: Go Build and Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Extract Go version from go.mod
+      run: echo "GO_VERSION=$(grep 'go ' go.mod | awk '{print $2}')" >> $GITHUB_ENV
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Check formatting with Make
+      run: make fmt-check
+
+    - name: Vet with Make
+      run: make vet
+
+    - name: Build with Make
+      run: make release
+
+    - name: Test with Make
+      run: make test
