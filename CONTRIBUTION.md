@@ -42,11 +42,9 @@ Report a bug by [opening a new issue]; it's that easy!
 ## Use a Consistent Coding Style
 
 * 4 spaces for indentation rather than tabs
-* You can try running `npm run lint` for style unification
+* More coding style related changes and rules are to come soon. Keep yourself up-to-date!
 
 ## Code of Conduct
-
-[Full Code of Conduct]
 
 In short, don't be a jerk. Be respectful and considerate in your interactions.
 
