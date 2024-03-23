@@ -40,6 +40,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: .bin/ # Adjust this to the path of your built binary
+        asset_path: ./bin/goaddons # Adjust this to the path of your built binary
         asset_name: goaddons # Adjust this to the name of your binary
         asset_content_type: application/octet-stream
