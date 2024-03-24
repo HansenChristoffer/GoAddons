@@ -21,7 +21,10 @@ cd GoAddons
 
 2. **Docker containers**:
 
-Make sure you have Docker/Docker-engine and Docker-compose installed on your system. Now, run the following command:
+Make sure you have Docker/Docker-engine and Docker-compose installed on your system. You will need to edit the docker-compose.yml file to fit your system.
+The "kaasufouji-extract-volume" device path needs to be your systems path to your addons directory. Finally, change any [YOUR_HOST_NAME_HERE] to your actual user's name.
+
+Now, run the following command:
 
 ```bash
 docker-compose up -d
