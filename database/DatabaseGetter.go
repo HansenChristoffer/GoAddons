@@ -16,8 +16,9 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"goaddons/models"
 	"log"
+
+	"goaddons/models"
 )
 
 func GetSystemConfigurations(db *sql.DB) (systemConfig []models.SystemConfig, err error) {

@@ -1,12 +1,12 @@
 # GoAddons
 
-GoAddons is a sophisticated command-line interface (CLI) application designed to enhance the World of Warcraft (WoW) gaming experience by simplifying the management of game addons. Leveraging the power of TanukiDB, GoAddons facilitates the effortless discovery, update, and management of WoW addons, ensuring gamers can focus on what truly matters: their gaming experience.
+GoAddons is a command-line interface (CLI) application designed to enhance the World of Warcraft (WoW) experience by simplifying the management of game addons. Leveraging the power of a database, GoAddons facilitates the effortless discovery, update, and management of WoW addons.
 
 ## Features
 
 - **Addon Management**: Easily list, search, add, or remove WoW addons to customize your gaming setup.
-- **Updater Menu**: Automatically checks and updates your addons to the latest versions, ensuring you have the latest features and fixes.
-- **About**: Learn more about GoAddons, its philosophy, and the team behind it.
+- **Updater Menu**: ~~Automatically checks and~~ updates your addons to the latest versions, ensuring you have the latest features and fixes.
+- **About**: Learn more about GoAddons.
 
 ## Getting Started
 

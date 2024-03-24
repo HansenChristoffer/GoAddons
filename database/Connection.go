@@ -15,10 +15,11 @@ package database
 
 import (
 	"database/sql"
-	"github.com/go-sql-driver/mysql"
 	"log"
 	"os"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 func ConnectToServer() *sql.DB {
