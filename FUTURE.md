@@ -1,5 +1,10 @@
 # Future plans for GoAddons
 
+## Tests
+1. Some tests
+2. aaaand some more test
+3. and after that even more tests
+
 ## Make Docker dependency deprecated
 1. Change from MySQL to a simple SQLite database that makes it easier to ship instead of requiring Docker.
 2. Look into possibility of not requiring the Docker Chrome browser when downloading files.
