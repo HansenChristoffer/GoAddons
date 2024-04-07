@@ -52,9 +52,7 @@ Follow the on-screen prompts to manage your WoW addons.
 
 ## Note
 
-If you're planning on doing any **Addon Management**, you need to make sure that your **'tanukiDB'** container is up and running.
-
-Also, keep in mind that if you're going to run the **Updater**, you need to make sure the Docker container called **'goaddons_cdp'** is up and running.
+Keep in mind that if you're going to run the **Updater**, you need to make sure the Docker container called **'goaddons_cdp'** is up and running.
 
 You can check what containers are currently up-and-running by executing the following:
 
