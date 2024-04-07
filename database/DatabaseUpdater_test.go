@@ -30,7 +30,7 @@ func TestUpdateAddon(t *testing.T) {
 
 	addon := models.Addon{Name: "TestAddon"}
 
-	mock.ExpectExec("UPDATE kaasufouji.addons SET last_downloaded = \\? WHERE name = \\?").
+	mock.ExpectExec("UPDATE addon SET last_downloaded = \\? WHERE name = \\?").
 		WithArgs(sqlmock.AnyArg(), addon.Name).
 		WillReturnResult(sqlmock.NewResult(0, 1)) // Assuming the update affects 1 row
 
@@ -52,7 +52,7 @@ func TestInsertAddon(t *testing.T) {
 
 	addon := models.Addon{Name: "TestAddon", Filename: "testfile.zip", Url: "http://example.com/test", DownloadUrl: "http://example.com/download/testfile.zip"}
 
-	mock.ExpectExec("INSERT IGNORE INTO kaasufouji.addons \\(name, filename, url, download_url\\) VALUES \\(\\?, \\?, \\?, \\?\\);").
+	mock.ExpectExec("INSERT OR IGNORE INTO addon \\(name, filename, url, download_url\\) VALUES \\(\\?, \\?, \\?, \\?\\);").
 		WithArgs(addon.Name, addon.Filename, addon.Url, addon.DownloadUrl).
 		WillReturnResult(sqlmock.NewResult(1, 1)) // Assuming the insert results in 1 row affected
 
@@ -74,7 +74,7 @@ func TestRemoveAddonByID(t *testing.T) {
 
 	addonID := 1
 
-	mock.ExpectExec("DELETE FROM kaasufouji.addons WHERE id = \\?;").
+	mock.ExpectExec("DELETE FROM addon WHERE id = \\?;").
 		WithArgs(addonID).
 		WillReturnResult(sqlmock.NewResult(0, 1)) // Assuming the delete affects 1 row
 

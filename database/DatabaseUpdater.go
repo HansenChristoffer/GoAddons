@@ -21,22 +21,22 @@ import (
 )
 
 func UpdateAddon(db *sql.DB, addon models.Addon) (r int64, err error) {
-	result, err := db.Exec("UPDATE kaasufouji.addons SET last_downloaded = ? WHERE name = ?",
+	result, err := db.Exec("UPDATE addon SET last_downloaded = ? WHERE name = ?",
 		time.Now().UTC(), addon.Name)
 	if err != nil {
-		return 0, fmt.Errorf("database.UpdateAddon: %v", err)
+		return 0, fmt.Errorf("database.UpdateAddon: %v\n", err)
 	}
 
 	r, err = result.RowsAffected()
 	if err != nil {
-		return 0, fmt.Errorf("database.UpdateAddon: %v", err)
+		return 0, fmt.Errorf("database.UpdateAddon: %v\n", err)
 	}
 
 	return
 }
 
 func InsertAddon(db *sql.DB, addon models.Addon) (r int64, err error) {
-	result, err := db.Exec(("INSERT IGNORE INTO kaasufouji.addons (name, filename, url, download_url) VALUES (?, ?, ?, ?);"),
+	result, err := db.Exec("INSERT OR IGNORE INTO addon (name, filename, url, download_url) VALUES (?, ?, ?, ?);",
 		addon.Name, addon.Filename, addon.Url, addon.DownloadUrl)
 	if err != nil {
 		return 0, fmt.Errorf("database.InsertAddon :: %v\n", err)
@@ -50,7 +50,7 @@ func InsertAddon(db *sql.DB, addon models.Addon) (r int64, err error) {
 }
 
 func RemoveAddonByID(db *sql.DB, id int) (r int64, err error) {
-	result, err := db.Exec("DELETE FROM kaasufouji.addons WHERE id = ?;", id)
+	result, err := db.Exec("DELETE FROM addon WHERE id = ?;", id)
 	if err != nil {
 		return 0, fmt.Errorf("database.RemoveAddonByID :: Error while trying to delete addon by ID [%d] -> %v\n",
 			id, err)

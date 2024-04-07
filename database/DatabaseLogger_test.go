@@ -53,7 +53,7 @@ func TestInsertRLog(t *testing.T) {
 
 	result := sqlmock.NewResult(1, 1)
 
-	mock.ExpectExec("INSERT IGNORE kaasufouji.run_log \\(run_id, service\\) VALUES \\(\\?, \\?\\)").
+	mock.ExpectExec("INSERT OR IGNORE run_log \\(run_id, service\\) VALUES \\(\\?, \\?\\)").
 		WithArgs(testUUID.String(), "TestService1").
 		WillReturnResult(result)
 
@@ -75,7 +75,7 @@ func TestInsertDLog(t *testing.T) {
 
 	result := sqlmock.NewResult(1, 1)
 
-	mock.ExpectExec("INSERT IGNORE kaasufouji.download_log \\(run_id, url\\) VALUES \\(\\?, \\?\\)").
+	mock.ExpectExec("INSERT OR IGNORE download_log \\(run_id, url\\) VALUES \\(\\?, \\?\\)").
 		WithArgs(testUUID.String(), "TestURL1").
 		WillReturnResult(result)
 
@@ -97,7 +97,7 @@ func TestInsertELog(t *testing.T) {
 
 	result := sqlmock.NewResult(1, 1)
 
-	mock.ExpectExec("INSERT IGNORE kaasufouji.extract_log \\(run_id, file\\) VALUES \\(\\?, \\?\\)").
+	mock.ExpectExec("INSERT OR IGNORE extract_log \\(run_id, file\\) VALUES \\(\\?, \\?\\)").
 		WithArgs(testUUID.String(), "TestFile1").
 		WillReturnResult(result)
 

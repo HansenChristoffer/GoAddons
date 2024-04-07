@@ -64,7 +64,7 @@ func TestGetSystemConfigurations(t *testing.T) {
 		AddRow("TestConfig1", "TestPath1").
 		AddRow("TestConfig2", "TestPath2")
 
-	mock.ExpectQuery("SELECT \\* FROM defcon\\.system_config_default").WillReturnRows(rows)
+	mock.ExpectQuery("SELECT \\* FROM system_config_default").WillReturnRows(rows)
 
 	configs, err := GetSystemConfigurations(db)
 	assert.NoError(t, err)
@@ -103,7 +103,7 @@ func TestGetAllAddons(t *testing.T) {
 		AddRow(2, "TestName2", "TestFilename2", "www.TestUrl2.io", "www.TestDownloadUrl2.io/download", nil, nil, nil)
 
 	mock.ExpectQuery("SELECT id, name, filename, url, download_url, last_downloaded, last_modified_at, " +
-		"added_at FROM kaasufouji\\.addons WHERE download_url IS NOT NULL AND download_url != '';").
+		"added_at FROM addon WHERE download_url IS NOT NULL AND download_url != '';").
 		WillReturnRows(rows)
 	addons, err := GetAllAddons(db)
 
@@ -143,7 +143,7 @@ func TestGetAddonsByName(t *testing.T) {
 		AddRow(1, "TestName2", "TestFilename2", "www.TestUrl2.io", "www.TestDownloadUrl2.io/download", nil, nil, nil)
 
 	mock.ExpectQuery("SELECT id, name, filename, url, download_url, last_downloaded, last_modified_at, added_at " +
-		"FROM kaasufouji\\.addons WHERE name LIKE '%" + expectedTestAddon2.Name + "%'").
+		"FROM addon WHERE name LIKE '%" + expectedTestAddon2.Name + "%'").
 		WillReturnRows(rows)
 	addon, err := GetAddonsByName(db, expectedTestAddon2.Name)
 	assert.NoError(t, err)

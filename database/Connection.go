@@ -16,36 +16,28 @@ package database
 import (
 	"database/sql"
 	"log"
-	"os"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
+	_ "modernc.org/sqlite"
 )
 
-func ConnectToServer() *sql.DB {
-	var dbConn *sql.DB
+const (
+	databaseType             = "sqlite"
+	maxConnLifetimeInMinutes = 30
+	maxOpenConns             = 1
+	maxIdleConns             = 1
+)
 
-	// Capture connection properties.
-	cfg := mysql.Config{
-		User:                 os.Getenv("DBUSER"),
-		Passwd:               os.Getenv("DBPASS"),
-		Net:                  "tcp",
-		Addr:                 "127.0.0.1:3306",
-		DBName:               "defcon",
-		AllowNativePasswords: true,
-	}
-
+func ConnectToServer() (dbConn *sql.DB) {
 	// Get a database handle.
-	var err error
-	dbConn, err = sql.Open("mysql", cfg.FormatDSN())
+	dbConn, err := sql.Open(databaseType, "./bin/acd.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// See "Important settings" section.
-	dbConn.SetConnMaxLifetime(time.Minute * 10)
-	dbConn.SetMaxOpenConns(5)
-	dbConn.SetMaxIdleConns(5)
+	dbConn.SetConnMaxLifetime(time.Minute * maxConnLifetimeInMinutes)
+	dbConn.SetMaxOpenConns(maxOpenConns)
+	dbConn.SetMaxIdleConns(maxIdleConns)
 
 	pingErr := dbConn.Ping()
 	if pingErr != nil {
@@ -59,5 +51,10 @@ func ConnectToServer() *sql.DB {
 		"Number of idle connections: %d\n",
 		stats.OpenConnections, stats.MaxOpenConnections, stats.InUse, stats.Idle)
 
-	return dbConn
+	err = ExecuteInitSQL(dbConn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return
 }

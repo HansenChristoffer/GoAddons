@@ -25,7 +25,7 @@ import (
 
 func Extract(source string, destination string) error {
 	if source == "" || destination == "" {
-		return fmt.Errorf("source and destination is required")
+		return fmt.Errorf("source and destination is required\n")
 	}
 
 	return unzipSource(source, destination)
@@ -36,7 +36,6 @@ func unzipSource(source string, destination string) error {
 	if err != nil {
 		return err
 	}
-
 	defer func(read *zip.ReadCloser) {
 		err := read.Close()
 		if err != nil {
@@ -63,12 +62,12 @@ func unzipSource(source string, destination string) error {
 
 func unzipFile(f *zip.File, destination string) error {
 	if f == nil {
-		return fmt.Errorf("zip file is not allowed to be nil")
+		return fmt.Errorf("zip file is not allowed to be nil\n")
 	}
 
 	sourceFilePath := filepath.Join(destination, f.Name)
 	if !strings.HasPrefix(sourceFilePath, filepath.Clean(destination)+string(os.PathSeparator)) {
-		return fmt.Errorf("invalid file path: %s", sourceFilePath)
+		return fmt.Errorf("invalid file path: %s\n", sourceFilePath)
 	}
 
 	if f.FileInfo().IsDir() {

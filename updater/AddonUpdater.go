@@ -16,16 +16,15 @@ package updater
 import (
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
 	"goaddons/database"
 	"goaddons/models"
 	"goaddons/net"
-	"goaddons/system"
+	"goaddons/utils"
 	"log"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -37,13 +36,15 @@ const (
 var db *sql.DB
 
 func StartUpdater() {
-	log.Printf("Addon Updater starting...")
+	log.Printf("Addon Updater starting...\n")
 
 	// Connect to MySQL database
 	db = database.ConnectToServer()
 
+	runId := strings.Replace(uuid.New().String(), "-", "", -1)
+
 	// Log that the software is making a "run"
-	rLog, err := database.InsertRLog(db, models.RLog{RunId: strings.Replace(uuid.New().String(), "-", "", -1),
+	rLog, err := database.InsertRLog(db, models.RLog{RunId: runId,
 		Service: serviceName})
 	if err != nil {
 		log.Printf("Failed to store run logging into database... -> %v\n", err)
@@ -54,13 +55,13 @@ func StartUpdater() {
 	// Fetch systems configuration from database
 	config, err := database.GetSystemConfigurations(db)
 	if err != nil {
-		log.Fatalf("Failed to fetch system configurations... -> %v", err)
+		log.Fatalf("Failed to fetch system configurations... -> %v\n", err)
 	}
 
 	// Fetch the addons path & download dir from the system configurations
 	addonsPath, downloadPath, err := getDownloadPathAndAddonsPath(config)
 	if err != nil {
-		log.Fatalf("Failed to fetch system configurations... -> %v", err)
+		log.Fatalf("Failed to fetch system configurations... -> %v\n", err)
 	}
 
 	startTime := time.Now().UTC()
@@ -68,96 +69,76 @@ func StartUpdater() {
 	// Get all addons from database
 	addons, err := database.GetAllAddons(db)
 	if err != nil {
-		log.Fatalf("Failed to fetch all addons... -> %v", err)
+		log.Fatalf("Failed to fetch all addons... -> %v\n", err)
 	}
 
-	log.Printf("Fetched a total of %d addons!", len(addons))
+	log.Printf("Fetched a total of %d addons!\n", len(addons))
 
-	done, err := net.StartHeadlessAndDownloadAddons(addons, downloadPath, db)
+	// Creates stop channel and errorChannel and starts the PollingExtractor
+	stopChannel := make(chan struct{})
+	errorChannel := make(chan error, 1)
+	go PollingExtractor(runId, downloadPath, addonsPath, stopChannel, errorChannel)
+
+	go func() {
+		for err := range errorChannel {
+			log.Println("Error from PollingExtractor:", err)
+		}
+	}()
+
+	// Starts headless browser and downloads addons. Will return bool for done state
+	done, err := net.StartHeadlessAndDownloadAddons(runId, addons, downloadPath, db)
 	if err != nil {
-		log.Fatalf("Error while navigating... -> %v", err)
+		log.Fatalf("Error while navigating... -> %v\n", err)
 	}
 
 	if done {
-		// Download is now done. Time to extract the files within "downloadPath" to "addonsPath"
-		err = extractAllAddons(downloadPath, addonsPath)
+		time.Sleep(10 * time.Second)
+
+		err = <-errorChannel
 		if err != nil {
-			log.Fatalf("Error while extracting addons... -> %v", err)
+			log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
 		}
+
+		time.Sleep(500 * time.Millisecond)
+		close(stopChannel)
+		time.Sleep(2 * time.Second)
 
 		log.Println("Done with extracting all addons!")
 	} else {
 		log.Println("For some reason it did not finish properly...")
+
+		err = <-errorChannel
+		if err != nil {
+			log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
+		}
+
+		time.Sleep(500 * time.Millisecond)
+		close(stopChannel)
 	}
 
 	elapsedTime := time.Since(startTime)
 	log.Printf("Elapsed duration: %s\n", elapsedTime)
+
+	utils.PressEnterToReturn()
 }
 
 func getDownloadPathAndAddonsPath(config []models.SystemConfig) (ap string, dp string, err error) {
-	var addonsPath string
-	var downloadPath string
-
 	for _, c := range config {
 		if c.Name == systemsAddonsPathName {
 			if c.Path == "" {
 				return "", "", fmt.Errorf("system's addons directory path is empty -> %v\n", err)
 			}
 
-			addonsPath = c.Path
-			log.Printf("Found the host system's addons directory path at: '%s'\n", addonsPath)
+			ap = c.Path
+			log.Printf("Found the host system's addons directory path at: '%s'\n", ap)
 		} else if c.Name == browserDownloadDirName {
 			if c.Path == "" {
 				return "", "", fmt.Errorf("system's download directory path is empty -> %v\n", err)
 			}
 
-			downloadPath = c.Path
-			log.Printf("Found the host system's download directory path at: '%s'\n", downloadPath)
+			dp = c.Path
+			log.Printf("Found the host system's download directory path at: '%s'\n", dp)
 		}
 	}
-
-	return addonsPath, downloadPath, nil
-}
-
-func extractAllAddons(dp string, ap string) error {
-	files, err := getAddonsAtPath(dp)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Will now commence extraction of a total of %d addons...", len(files))
-	for i, file := range files {
-		// Combine the directory path with the entry name to get the absolute path
-		absPath := filepath.Join(dp, file.Name())
-		log.Printf("[%d/%d] System extract of %s!", i+1, len(files), file.Name())
-		err := system.Extract(absPath, ap)
-		if err != nil {
-			return err
-		}
-
-		id, err := database.InsertELog(db, models.ELog{
-			RunId: strings.Replace(uuid.New().String(), "-", "", -1),
-			File:  absPath,
-		})
-		if err != nil {
-			log.Fatalf("Failed to insert extract log into database for the file: %s -> %v", file.Name(), err)
-		}
-
-		log.Printf("Stored extract logging with ID: %d, for the file: %s\n", id, file.Name())
-	}
-
-	return nil
-}
-
-func getAddonsAtPath(p string) (f []os.DirEntry, err error) {
-	files, err := os.ReadDir(p)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(files) == 0 {
-		return nil, fmt.Errorf("no files at: %s", p)
-	}
-
-	return files, nil
+	return
 }

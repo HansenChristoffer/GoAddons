@@ -17,10 +17,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/chromedp/cdproto/browser"
-	"github.com/chromedp/cdproto/page"
-	"github.com/chromedp/chromedp"
-	"github.com/google/uuid"
 	"goaddons/database"
 	"goaddons/models"
 	"log"
@@ -28,6 +24,10 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/chromedp/cdproto/browser"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
 )
 
 const (
@@ -41,43 +41,31 @@ var userAgents = []string{
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.705.50 Safari/537.36 Edg/88.0.705.50",
 	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_16_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15",
 
-	// Mobile Browsers
-	"Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 Mobile Safari/537.36",
-	"Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
-	"Mozilla/5.0 (Android 10; Mobile; rv:86.0) Gecko/86.0 Firefox/86.0",
-
 	// Other Devices
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36",
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.2 Safari/537.36 Edge/12.10136",
 }
 
-func StartHeadlessAndDownloadAddons(arr []models.Addon, dp string, db *sql.DB) (done bool, err error) {
+func StartHeadlessAndDownloadAddons(runId string, arr []models.Addon, dp string, db *sql.DB) (done bool, err error) {
 	if arr == nil || dp == "" {
-		return false, fmt.Errorf("addons or downloadPath is required")
+		return false, fmt.Errorf("addons or downloadPath is required\n")
 	}
 
-	ctx, cancel := chromedp.NewRemoteAllocator(context.Background(), dockerUrl)
-	defer cancel()
-
-	// initialize a controllable Chrome instance
-	ctx, cancel = chromedp.NewContext(ctx)
+	ctx, cancel, err := setupContext(dp)
+	if err != nil {
+		return false, err
+	}
 	defer cancel()
 
 	// Channel to signal the completion of each download
 	downloadComplete := make(chan string)
-
-	err = setupContextOptions(ctx, dp)
-	if err != nil {
-		return false, err
-	}
-
 	setupContextListeners(ctx, dp, downloadComplete)
 
 	for i, a := range arr {
 		log.Printf("[%d/%d] Will try to navigate to: %s\n", i+1, len(arr), a.DownloadUrl)
 
 		if a.DownloadUrl == "" {
-			log.Printf("DownloadURL is not allowed to be empty, will ignore this addon!")
+			log.Printf("DownloadURL is not allowed to be empty, will ignore this addon!\n")
 		} else if strings.HasSuffix(a.DownloadUrl, ".zip") {
 			_, err := handleDirectDownload(a, dp)
 			if err != nil {
@@ -92,7 +80,7 @@ func StartHeadlessAndDownloadAddons(arr []models.Addon, dp string, db *sql.DB) (
 		// Wait for the signal that the current download is complete
 		<-downloadComplete
 
-		err = handleDownloadLogging(db, a)
+		err = handleDownloadLogging(db, a, runId)
 		if err != nil {
 			log.Println(err)
 		}
@@ -104,12 +92,32 @@ func StartHeadlessAndDownloadAddons(arr []models.Addon, dp string, db *sql.DB) (
 		}
 
 		// Trying to accommodate for any type of latency issues
-		time.Sleep(time.Second * 2)
-		log.Printf("Continuing to the next addon...")
+		time.Sleep(2 * time.Second)
+		log.Printf("Continuing to the next addon...\n")
 	}
 
 	log.Println("Download of all addons is now done!")
 	return true, nil
+}
+
+func setupContext(dp string) (ctx context.Context, cancelFunc context.CancelFunc, err error) {
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(context.Background(), dockerUrl)
+
+	// initialize a controllable Chrome instance
+	ctx, cancel := chromedp.NewContext(allocatorCtx)
+
+	if err = setupContextOptions(ctx, dp); err != nil {
+		cancel()
+		allocatorCancel()
+		return nil, nil, err
+	}
+
+	combinedCancelFunc := func() {
+		cancel()          // Cancel the chromedp context first.
+		allocatorCancel() // Then cancel the allocator context.
+	}
+
+	return ctx, combinedCancelFunc, nil
 }
 
 func getRandomUserAgent() string {
@@ -134,16 +142,16 @@ func handleDirectDownload(a models.Addon, dp string) (done bool, err error) {
 	}
 
 	if b {
-		log.Printf("Done with download addon from, %s", a.DownloadUrl)
+		log.Printf("Done with download addon from, %s\n", a.DownloadUrl)
 		return true, nil
 	}
 
-	log.Printf("Was unable to download addon from, %s", a.DownloadUrl)
+	log.Printf("Was unable to download addon from, %s\n", a.DownloadUrl)
 	return false, nil
 }
 
-func handleDownloadLogging(db *sql.DB, a models.Addon) error {
-	dLog, err := database.InsertDLog(db, models.DLog{RunId: strings.Replace(uuid.New().String(), "-", "", -1),
+func handleDownloadLogging(db *sql.DB, a models.Addon, runId string) error {
+	dLog, err := database.InsertDLog(db, models.DLog{RunId: runId,
 		Url: a.DownloadUrl})
 	if err != nil {
 		return fmt.Errorf("failed to store download logging into database for the URL: %s -> %v\n",
@@ -166,7 +174,7 @@ func setupContextOptions(ctx context.Context, dp string) error {
 	err := chromedp.Run(ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			userAgent := getRandomUserAgent()
-			log.Printf("Setting [%s] as user agent!", userAgent)
+			log.Printf("Setting [%s] as user agent!\n", userAgent)
 
 			// set user agent
 			err := chromedp.Evaluate(fmt.Sprintf("navigator.userAgent = \"%s\"", userAgent),
@@ -212,7 +220,7 @@ func handleDownloadProgressEvent(ev *browser.EventDownloadProgress, dc chan stri
 		log.Println("Download completed!")
 		dc <- ev.GUID
 	} else {
-		log.Printf("Unknown EventDownloadProgress state! [%s]", ev.State.String())
+		log.Printf("Unknown EventDownloadProgress state! [%s]\n", ev.State.String())
 	}
 }
 
