@@ -31,7 +31,7 @@ func DownloadFile(source string, destination string) (done bool, err error) {
 	defer func(out *os.File) {
 		err := out.Close()
 		if err != nil {
-			log.Printf("DownloadFile.outClose: %v", err)
+			log.Printf("DownloadFile.outClose: %v\n", err)
 		}
 	}(out)
 
@@ -44,13 +44,13 @@ func DownloadFile(source string, destination string) (done bool, err error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Printf("DownloadFile.BodyClose: %v", err)
+			log.Printf("DownloadFile.BodyClose: %v\n", err)
 		}
 	}(resp.Body)
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("bad status: %s", resp.Status)
+		return false, fmt.Errorf("bad status: %s\n", resp.Status)
 	}
 
 	// Writer the body to file

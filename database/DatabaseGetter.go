@@ -16,15 +16,14 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	"goaddons/models"
+	"log"
 )
 
 func GetSystemConfigurations(db *sql.DB) (systemConfig []models.SystemConfig, err error) {
-	rows, err := db.Query("SELECT * FROM defcon.system_config_default")
+	rows, err := db.Query("SELECT * FROM system_config_default")
 	if err != nil {
-		return nil, fmt.Errorf("database.GetSystemConfigurations :: %v", err)
+		return nil, fmt.Errorf("database.GetSystemConfigurations :: %v\n", err)
 	}
 
 	defer func(rows *sql.Rows) {
@@ -38,22 +37,22 @@ func GetSystemConfigurations(db *sql.DB) (systemConfig []models.SystemConfig, er
 	for rows.Next() {
 		var config models.SystemConfig
 		if err := rows.Scan(&config.Name, &config.Path); err != nil {
-			return nil, fmt.Errorf("database.GetSystemConfigurations :: %v", err)
+			return nil, fmt.Errorf("database.GetSystemConfigurations :: %v\n", err)
 		}
 		systemConfig = append(systemConfig, config)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("database.GetSystemConfigurations :: %v", err)
+		return nil, fmt.Errorf("database.GetSystemConfigurations :: %v\n", err)
 	}
 	return
 }
 
 func GetAllAddons(db *sql.DB) (addons []models.Addon, err error) {
 	rows, err := db.Query("SELECT id, name, filename, url, download_url, last_downloaded, last_modified_at, added_at " +
-		"FROM kaasufouji.addons WHERE download_url IS NOT NULL AND download_url != '';")
+		"FROM addon WHERE download_url IS NOT NULL AND download_url != '';")
 	if err != nil {
-		return nil, fmt.Errorf("database.GetAllAddons :: %v", err)
+		return nil, fmt.Errorf("database.GetAllAddons :: %v\n", err)
 	}
 
 	defer func(rows *sql.Rows) {
@@ -68,20 +67,20 @@ func GetAllAddons(db *sql.DB) (addons []models.Addon, err error) {
 		var addon models.Addon
 		if err := rows.Scan(&addon.Id, &addon.Name, &addon.Filename, &addon.Url, &addon.DownloadUrl,
 			&addon.LastDownloaded, &addon.LastModifiedAt, &addon.AddedAt); err != nil {
-			return nil, fmt.Errorf("database.GetAllAddons :: %v", err)
+			return nil, fmt.Errorf("database.GetAllAddons :: %v\n", err)
 		}
 		addons = append(addons, addon)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("database.GetAllAddons :: %v", err)
+		return nil, fmt.Errorf("database.GetAllAddons :: %v\n", err)
 	}
 	return
 }
 
 func GetAddonsByName(db *sql.DB, name string) (addons []models.Addon, err error) {
 	rows, err := db.Query("SELECT id, name, filename, url, download_url, last_downloaded, last_modified_at, added_at " +
-		"FROM kaasufouji.addons WHERE name LIKE '%" + name + "%'")
+		"FROM addon WHERE name LIKE '%" + name + "%'")
 	if err != nil {
 		return nil, fmt.Errorf("database.GetAddonsByName :: Error while searching for addon! -> %v\n", err)
 	}
@@ -104,7 +103,7 @@ func GetAddonsByName(db *sql.DB, name string) (addons []models.Addon, err error)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("database.GetAddonsByName :: %v", err)
+		return nil, fmt.Errorf("database.GetAddonsByName :: %v\n", err)
 	}
 	return
 }

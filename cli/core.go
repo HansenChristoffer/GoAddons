@@ -76,16 +76,16 @@ func addonManagement() {
 		switch input {
 		case "1":
 			ListAllAddons()
-			utils.PressEnterToReturn(addonManagement)
+			utils.PressEnterToReturnToFunction(addonManagement)
 		case "2":
 			SearchForAddonByName()
-			utils.PressEnterToReturn(addonManagement)
+			utils.PressEnterToReturnToFunction(addonManagement)
 		case "3":
 			AddNewAddon()
-			utils.PressEnterToReturn(addonManagement)
+			utils.PressEnterToReturnToFunction(addonManagement)
 		case "4":
 			RemoveAddon()
-			utils.PressEnterToReturn(addonManagement)
+			utils.PressEnterToReturnToFunction(addonManagement)
 		case "X", "x":
 			StartCli()
 		default:
@@ -125,23 +125,23 @@ func about() {
 	utils.ClearScreen()
 
 	fmt.Printf(`
-  »»» About GoAddons «««
+   »»» About GoAddons «««
 
-GoAddons is a state-of-the-art command-line interface (CLI) application designed to revolutionize the way World of Warcraft (WoW) enthusiasts manage their addons. 
-Developed with precision and a deep understanding of the gamer's needs, GoAddons offers an unparalleled user experience, allowing for effortless management, updating, and discovery of WoW addons.
+ GoAddons is a state-of-the-art command-line interface (CLI) application designed to revolutionize the way World of Warcraft (WoW) enthusiasts manage their addons. 
+ Developed with precision and a deep understanding of the gamer's needs, GoAddons offers an unparalleled user experience, allowing for effortless management, updating, and discovery of WoW addons.
 
-At the heart of GoAddons is the integration with TanukiDB, a comprehensive database of WoW addons. This powerful synergy enables users to seamlessly search, add, and remove addons, ensuring their gaming setup is always optimized for victory.
+ At the heart of GoAddons is the integration with TanukiDB, a comprehensive database of WoW addons. This powerful synergy enables users to seamlessly search, add, and remove addons, ensuring their gaming setup is always optimized for victory.
 
-Key Features:
-- Addon Management: Curate your collection of WoW addons with simple commands. List, search, add, or remove addons with ease, tailoring your addon library to your gaming needs.
-- Updater Menu: Stay ahead of the game with the Updater feature. GoAddons checks for the latest versions of your addons and updates them automatically, ensuring you're always equipped with the latest tools and enhancements.
-- About GoAddons: Learn about the philosophy, features, and the team behind GoAddons. We're committed to providing an exceptional tool that enhances your gaming experience.
+ Key Features:
+ - Addon Management: Curate your collection of WoW addons with simple commands. List, search, add, or remove addons with ease, tailoring your addon library to your gaming needs.
+ - Updater Menu: Stay ahead of the game with the Updater feature. GoAddons checks for the latest versions of your addons and updates them automatically, ensuring you're always equipped with the latest tools and enhancements.
+ - About GoAddons: Learn about the philosophy, features, and the team behind GoAddons. We're committed to providing an exceptional tool that enhances your gaming experience.
 
-GoAddons is more than just a tool; it's a companion for every WoW player who believes in the power of customization and efficiency. Developed by a team of passionate gamers and skilled engineers, GoAddons is dedicated to elevating your WoW experience to new heights.
+ GoAddons is more than just a tool; it's a companion for every WoW player who believes in the power of customization and efficiency. Developed by a team of passionate gamers and skilled engineers, GoAddons is dedicated to elevating your WoW experience to new heights.
 
-Thank you for choosing GoAddons. Your adventure awaits.
+ Thank you for choosing GoAddons. Your adventure awaits.
 
-Press ENTER to return to the main menu...
+ Press ENTER to return to the main menu...
 `)
 	_, err := fmt.Scanln()
 	if err != nil {

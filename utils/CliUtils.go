@@ -43,12 +43,21 @@ func ClearScreen() {
 	}
 }
 
-// PressEnterToReturn Waits for user to press the return key
-func PressEnterToReturn(fn function) {
-	fmt.Printf("\n\nPress ENTER to return...\n")
+// PressEnterToReturnToFunction Waits for user to press the return key then calls function
+func PressEnterToReturnToFunction(fn function) {
+	fmt.Printf("\n\n Press ENTER to return...\n")
 	_, err := fmt.Scanln()
 	if err != nil {
 		return
 	}
 	fn()
+}
+
+// PressEnterToReturn Waits for user to press the return key
+func PressEnterToReturn() {
+	fmt.Printf("\n\n Press ENTER to return...\n")
+	_, err := fmt.Scanln()
+	if err != nil {
+		return
+	}
 }

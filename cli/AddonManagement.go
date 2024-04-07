@@ -105,11 +105,11 @@ func AddNewAddon() {
 		if err != nil {
 			log.Printf("cli.addNewAddon :: Failed to insert addon(s)! -> %v\n", err)
 		}
-		fmt.Printf(" Inserted total of %d addon(s) into TanukiDB!", r)
+		fmt.Printf(" Inserted total of %d addon(s) into TanukiDB!\n", r)
 	case "N", "n":
-		fmt.Printf(" Stopped insertion of new addon(s)!")
+		fmt.Println(" Stopped insertion of new addon(s)!")
 	default:
-		fmt.Printf(" Stopped insertion of new addon(s)!")
+		fmt.Println(" Stopped insertion of new addon(s)!")
 	}
 }
 
@@ -141,9 +141,9 @@ func RemoveAddon() {
 		}
 		fmt.Printf(" Removed total of %d addon(s) from TanukiDB!", r)
 	case "N", "n":
-		fmt.Printf(" Stopped deletion of addon(s)!")
+		fmt.Println(" Stopped deletion of addon(s)!")
 	default:
-		fmt.Printf(" Stopped deletion of addon(s)!")
+		fmt.Println(" Stopped deletion of addon(s)!")
 	}
 }
 
