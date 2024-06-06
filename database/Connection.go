@@ -15,6 +15,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -22,39 +23,46 @@ import (
 )
 
 const (
+	databasePath             = "./init.sql"
 	databaseType             = "sqlite"
 	maxConnLifetimeInMinutes = 30
 	maxOpenConns             = 1
 	maxIdleConns             = 1
 )
 
-func ConnectToServer() (dbConn *sql.DB) {
-	// Get a database handle.
-	dbConn, err := sql.Open(databaseType, "./bin/acd.db")
+// ConnectToServer opens a connection to the SQLite database and sets up the connection parameters.
+func ConnectToServer(database string) (dbConn *sql.DB, err error) {
+	// Open a connection to the SQLite database.
+	dbConn, err = sql.Open(databaseType, database)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("database:Connection.ConnectToServer():sql.Open(%s, %s) "+
+			"-> %w", databaseType, database, err)
 	}
 
+	// Set the connection parameters.
 	dbConn.SetConnMaxLifetime(time.Minute * maxConnLifetimeInMinutes)
 	dbConn.SetMaxOpenConns(maxOpenConns)
 	dbConn.SetMaxIdleConns(maxIdleConns)
 
-	pingErr := dbConn.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
+	// Ping the database to ensure the connection is valid.
+	err = dbConn.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("database:Connection.ConnectToServer():dbConn.Ping() "+
+			"-> %w", err)
 	}
 	log.Println("Connected!")
 
-	// Stats
+	// Log connection statistics.
 	stats := dbConn.Stats()
 	log.Printf("\n### Statistics ###\nConnections: %d/%d\nNumber of active connections: %d\n"+
 		"Number of idle connections: %d\n",
 		stats.OpenConnections, stats.MaxOpenConnections, stats.InUse, stats.Idle)
 
-	err = ExecuteInitSQL(dbConn)
+	// Execute any initialization SQL.
+	err = ExecuteInitSQL(dbConn, databasePath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("database:Connection.ConnectToServer():ExecuteInitSQL(dbConn) "+
+			"-> %w", err)
 	}
-
-	return
+	return dbConn, nil
 }

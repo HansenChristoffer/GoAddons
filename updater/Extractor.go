@@ -14,7 +14,7 @@
 package updater
 
 import (
-	"errors"
+	"database/sql"
 	"fmt"
 	"goaddons/database"
 	"goaddons/models"
@@ -26,8 +26,17 @@ import (
 	"time"
 )
 
-func PollingExtractor(runId string, dp string, ap string, stopChannel <-chan struct{}, errorChannel chan<- error) {
+const (
+	sleepDuration = 1000 * time.Millisecond
+)
+
+var db *sql.DB
+var cachedAddons []models.Addon
+
+// PollingExtractor continuously polls the specified directory for addons and extracts them if found
+func PollingExtractor(dbConn *sql.DB, runId string, dp string, ap string, stopChannel <-chan struct{}, errorChannel chan<- error) {
 	log.Printf("PollingExtractor started -> RunID: [%s]\n", runId)
+	db = dbConn
 
 	for {
 		select {
@@ -39,40 +48,60 @@ func PollingExtractor(runId string, dp string, ap string, stopChannel <-chan str
 
 			fl, found, err := getAddonsAtPath(dp)
 			if err != nil {
-				errorChannel <- errors.New(fmt.Sprintf("%v", err))
+				errorChannel <- fmt.Errorf("updater:Extractor.PollingExtractor():getAddonsAtPath(%s) "+
+					"-> %w", dp, err)
+				continue
 			}
 
 			if found {
 				err = extractFiles(runId, dp, ap, fl)
 				if err != nil {
-					errorChannel <- errors.New(fmt.Sprintf("%v", err))
+					errorChannel <- fmt.Errorf("updater:Extractor.PollingExtractor():extractFiles(%s, %s, %s) "+
+						"-> %w", runId, dp, ap, err)
 				}
 			}
+			time.Sleep(sleepDuration)
 		}
 	}
 }
 
-// filterFilesForAddons: TODO
-func filterFilesForAddons(fl []os.DirEntry) (ff []os.DirEntry, err error) {
-	// Get all addons file names from database
-	// Filter so that we only accept those that are part of the list of names from database
-	return
-}
-
-func extractFiles(runId string, dp string, ap string, fl []os.DirEntry) (err error) {
-	ff, err := filterFilesForAddons(fl)
-	if err != nil {
-		return err
+// filterFilesForAddons filters the directory entries to include only those present in the database
+func filterFilesForAddons(files []os.DirEntry) (filteredAddons []os.DirEntry, err error) {
+	if len(cachedAddons) == 0 {
+		cachedAddons, err = database.GetAllAddons(db)
+		if err != nil {
+			return nil, fmt.Errorf("updater:Extractor.filterFilesForAddons():database.GetAllAddons(db) "+
+				"-> %w", err)
+		}
 	}
 
-	log.Printf("Will now commence extraction of a total of %d addons...\n", len(fl))
-	for i, f := range ff {
-		// Combine the directory path with the entry name to get the absolute path
-		absPath := filepath.Join(dp, f.Name())
-		log.Printf("[%d/%d] System extract of %s!\n", i+1, len(fl), f.Name())
+	for _, dirEntry := range files {
+		log.Printf("[DEBUG] DirEntry: %s\n", dirEntry.Name())
+		for _, addon := range cachedAddons {
+			if strings.Contains(dirEntry.Name(), addon.Filename) {
+				log.Printf("[DEBUG] %s contains %s == true\n", dirEntry.Name(), addon.Filename)
+				filteredAddons = append(filteredAddons, dirEntry)
+			}
+		}
+	}
+	return filteredAddons, nil
+}
+
+// extractFiles processes and extracts the filtered addon files
+func extractFiles(runId string, dp string, ap string, files []os.DirEntry) error {
+	filteredFiles, err := filterFilesForAddons(files)
+	if err != nil {
+		return fmt.Errorf("updater:Extractor.extractFiles():filterFilesForAddons(files) -> %w", err)
+	}
+
+	log.Printf("Will now commence extraction of a total of %d addons...\n", len(filteredFiles))
+	for idx, file := range filteredFiles {
+		absPath := filepath.Join(dp, file.Name())
+		log.Printf("[%d/%d] System extract of %s!\n", idx+1, len(filteredFiles), file.Name())
 		err := system.Extract(absPath, ap)
 		if err != nil {
-			return err
+			return fmt.Errorf("updater:Extractor.extractFiles():system.Extract(%s, %s) "+
+				"-> %w", absPath, ap, err)
 		}
 
 		id, err := database.InsertELog(db, models.ELog{
@@ -80,29 +109,31 @@ func extractFiles(runId string, dp string, ap string, fl []os.DirEntry) (err err
 			File:  absPath,
 		})
 		if err != nil {
-			log.Fatalf("Failed to insert extract log into database for the f: %s -> %v\n", f.Name(), err)
+			return fmt.Errorf("updater:Extractor.extractFiles():database.InsertELog(db, models.ELog) "+
+				"-> %w", err)
 		}
 
-		log.Printf("Stored extract logging with ID: %d, for the f: %s\n", id, f.Name())
-
+		log.Printf("Stored extract logging with ID: %d, for the file: %s\n", id, file.Name())
 		err = os.Remove(absPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("updater:Extractor.extractFiles():os.Remove(%s) -> %w", absPath, err)
 		}
 	}
-	return
+	return nil
 }
 
-func getAddonsAtPath(p string) (f []os.DirEntry, found bool, err error) {
-	f, err = os.ReadDir(p)
+// getAddonsAtPath retrieves the list of directory entries at the specified path that contains .zip
+func getAddonsAtPath(path string) (files []os.DirEntry, found bool, err error) {
+	readFiles, err := os.ReadDir(path)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("updater:Extractor.getAddonsAtPath():os.ReadDir(%s) "+
+			"-> %w", path, err)
 	}
-
-	if len(f) == 0 {
-		return nil, false, nil
-	} else {
-		found = true
+	for _, file := range readFiles {
+		if strings.HasSuffix(file.Name(), ".zip") {
+			files = append(files, file)
+		}
 	}
-	return
+	found = len(files) > 0
+	return files, found, nil
 }

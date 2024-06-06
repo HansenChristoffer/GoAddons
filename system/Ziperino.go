@@ -25,9 +25,8 @@ import (
 
 func Extract(source string, destination string) error {
 	if source == "" || destination == "" {
-		return fmt.Errorf("source and destination is required\n")
+		return fmt.Errorf("system::Ziperino.Extract() -> source and destination is required\n")
 	}
-
 	return unzipSource(source, destination)
 }
 
@@ -39,7 +38,7 @@ func unzipSource(source string, destination string) error {
 	defer func(read *zip.ReadCloser) {
 		err := read.Close()
 		if err != nil {
-			log.Printf("unzipSource.readClose: %v\n", err)
+			log.Printf("system:Ziperino.unzipSource():read.Close() -> %v\n", err)
 		}
 	}(read)
 
@@ -49,25 +48,23 @@ func unzipSource(source string, destination string) error {
 	}
 
 	log.Printf("Will now try to extract: %s to the destination: %s\n", source, destination)
-
-	for _, f := range read.File {
-		err := unzipFile(f, destination)
+	for _, file := range read.File {
+		err := unzipFile(file, destination)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
 func unzipFile(f *zip.File, destination string) error {
 	if f == nil {
-		return fmt.Errorf("zip file is not allowed to be nil\n")
+		return fmt.Errorf("system:Ziperino.unzipFile() -> zip file is not allowed to be nil\n")
 	}
 
 	sourceFilePath := filepath.Join(destination, f.Name)
 	if !strings.HasPrefix(sourceFilePath, filepath.Clean(destination)+string(os.PathSeparator)) {
-		return fmt.Errorf("invalid file path: %s\n", sourceFilePath)
+		return fmt.Errorf("system:Ziperino.unzipFile() -> invalid file path: %s\n", sourceFilePath)
 	}
 
 	if f.FileInfo().IsDir() {
@@ -89,7 +86,7 @@ func unzipFile(f *zip.File, destination string) error {
 	defer func(destinationFile *os.File) {
 		err := destinationFile.Close()
 		if err != nil {
-			log.Printf("Failed to close destinationFile -> %v\n", err)
+			log.Printf("system:Ziperino.unzipFile():destinationFile.Close() -> Failed to close destinationFile: %v\n", err)
 		}
 	}(destinationFile)
 
@@ -100,13 +97,12 @@ func unzipFile(f *zip.File, destination string) error {
 	defer func(zippedFile io.ReadCloser) {
 		err := zippedFile.Close()
 		if err != nil {
-			log.Printf("Failed to close zippedFile -> %v\n", err)
+			log.Printf("system:Ziperino.unzipFile().zippedFile.Close() -> Failed to close zippedFile: %v\n", err)
 		}
 	}(zippedFile)
 
 	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -20,7 +20,7 @@ import (
 )
 
 func InsertRLog(db *sql.DB, rlog models.RLog) (int64, error) {
-	result, err := db.Exec("INSERT OR IGNORE run_log (run_id, service) VALUES (?, ?)",
+	result, err := db.Exec("INSERT OR IGNORE INTO run_log (run_id, service) VALUES (?, ?)",
 		rlog.RunId, rlog.Service)
 	if err != nil {
 		return 0, fmt.Errorf("InsertRLog: %v\n", err)
@@ -35,7 +35,7 @@ func InsertRLog(db *sql.DB, rlog models.RLog) (int64, error) {
 }
 
 func InsertDLog(db *sql.DB, dlog models.DLog) (int64, error) {
-	result, err := db.Exec("INSERT OR IGNORE download_log (run_id, url) VALUES (?, ?)",
+	result, err := db.Exec("INSERT OR IGNORE INTO download_log (run_id, url) VALUES (?, ?)",
 		dlog.RunId, dlog.Url)
 	if err != nil {
 		return 0, fmt.Errorf("InsertDLog: %v\n", err)
@@ -50,7 +50,7 @@ func InsertDLog(db *sql.DB, dlog models.DLog) (int64, error) {
 }
 
 func InsertELog(db *sql.DB, elog models.ELog) (int64, error) {
-	result, err := db.Exec("INSERT OR IGNORE extract_log (run_id, file) VALUES (?, ?)",
+	result, err := db.Exec("INSERT OR IGNORE INTO extract_log (run_id, file) VALUES (?, ?)",
 		elog.RunId, elog.File)
 	if err != nil {
 		return 0, fmt.Errorf("InsertELog: %v\n", err)

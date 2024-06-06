@@ -19,14 +19,18 @@ import (
 	"goaddons/database"
 	"goaddons/updater"
 	"goaddons/utils"
+	"log"
 	"os"
+)
+
+const (
+	databasePath string = "./bin/acd.db"
 )
 
 var db *sql.DB
 
 func StartCli() {
 	utils.ClearScreen()
-
 	fmt.Printf(`  
 
   »»» GoAddons «««
@@ -58,8 +62,7 @@ func StartCli() {
 
 func addonManagement() {
 	utils.ClearScreen()
-	tryDatabaseConnect()
-
+	initDatabase() // init database connection if it is not already initialized
 	fmt.Printf(`
 
   »»» Addon Management «««
@@ -98,7 +101,7 @@ func addonManagement() {
 
 func updaterMenu() {
 	utils.ClearScreen()
-
+	initDatabase() // init database connection if it is not already initialized
 	fmt.Printf(`  
   »»» Updater Menu «««
 
@@ -110,7 +113,7 @@ func updaterMenu() {
 	if len(input) > 0 {
 		switch input {
 		case "1":
-			updater.StartUpdater()
+			updater.StartUpdater(db)
 		case "X", "x":
 			StartCli()
 		default:
@@ -123,7 +126,6 @@ func updaterMenu() {
 
 func about() {
 	utils.ClearScreen()
-
 	fmt.Printf(`
    »»» About GoAddons «««
 
@@ -150,9 +152,14 @@ func about() {
 	StartCli()
 }
 
-func tryDatabaseConnect() {
+// initDatabase initializes the global database connection.
+func initDatabase() {
 	if db == nil {
-		db = database.ConnectToServer()
+		var err error
+		db, err = database.ConnectToServer(databasePath)
+		if err != nil {
+			log.Fatalf("cli:core.initDatabase():ConnectToServer(%s) -> %v", databasePath, err)
+		}
 	}
 }
 
