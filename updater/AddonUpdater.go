@@ -33,13 +33,23 @@ const (
 	browserDownloadDirName = "browser.download.dir"
 )
 
-var db *sql.DB
-
-func StartUpdater() {
+func StartUpdater(db *sql.DB) {
 	log.Printf("Addon Updater starting...\n")
 
 	// Connect to MySQL database
-	db = database.ConnectToServer()
+	if db == nil {
+		var err error
+		db, err = database.ConnectToServer("./bin/acd.db")
+		if err != nil {
+			log.Fatalf("updater:AddonUpdater.StartUpdater():database.ConnectToServer(\"./bin/acd\") -> %v", err)
+		}
+		defer func(db *sql.DB) {
+			err := db.Close()
+			if err != nil {
+				log.Println("Error occurred while trying to close connection to database -> %w", err)
+			}
+		}(db)
+	}
 
 	runId := strings.Replace(uuid.New().String(), "-", "", -1)
 
@@ -77,7 +87,7 @@ func StartUpdater() {
 	// Creates stop channel and errorChannel and starts the PollingExtractor
 	stopChannel := make(chan struct{})
 	errorChannel := make(chan error, 1)
-	go PollingExtractor(runId, downloadPath, addonsPath, stopChannel, errorChannel)
+	go PollingExtractor(db, runId, downloadPath, addonsPath, stopChannel, errorChannel)
 
 	go func() {
 		for err := range errorChannel {
@@ -92,34 +102,39 @@ func StartUpdater() {
 	}
 
 	if done {
-		time.Sleep(10 * time.Second)
-
-		err = <-errorChannel
-		if err != nil {
-			log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
-		}
-
-		time.Sleep(500 * time.Millisecond)
-		close(stopChannel)
-		time.Sleep(2 * time.Second)
-
-		log.Println("Done with extracting all addons!")
+		handleDone(stopChannel, errorChannel)
 	} else {
-		log.Println("For some reason it did not finish properly...")
-
-		err = <-errorChannel
-		if err != nil {
-			log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
-		}
-
-		time.Sleep(500 * time.Millisecond)
-		close(stopChannel)
+		handleNotDone(stopChannel, errorChannel)
 	}
 
 	elapsedTime := time.Since(startTime)
 	log.Printf("Elapsed duration: %s\n", elapsedTime)
-
 	utils.PressEnterToReturn()
+}
+
+func handleDone(stopChannel chan struct{}, errorChannel chan error) {
+	log.Printf("Done, closing down resources...\n")
+	time.Sleep(5 * time.Second)
+
+	err := <-errorChannel
+	if err != nil {
+		log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
+	}
+
+	time.Sleep(500 * time.Millisecond)
+	close(stopChannel)
+}
+
+func handleNotDone(stopChannel chan struct{}, errorChannel chan error) {
+	log.Println("For some reason it did not finish properly...")
+
+	err := <-errorChannel
+	if err != nil {
+		log.Fatalf("Error while PollingExtractor running... -> %v\n", err)
+	}
+
+	time.Sleep(500 * time.Millisecond)
+	close(stopChannel)
 }
 
 func getDownloadPathAndAddonsPath(config []models.SystemConfig) (ap string, dp string, err error) {

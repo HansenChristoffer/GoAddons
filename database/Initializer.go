@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func ExecuteInitSQL(dbConn *sql.DB) error {
-	sqlFileContent, err := os.ReadFile("init.sql")
+func ExecuteInitSQL(dbConn *sql.DB, dbPath string) error {
+	sqlFileContent, err := os.ReadFile(dbPath)
 	if err != nil {
 		return err
 	}
