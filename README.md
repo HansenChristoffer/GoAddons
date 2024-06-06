@@ -32,7 +32,7 @@ docker-compose up -d
 
 This command will pull the relevant Docker images, create volumes and create containers that GoAddons will need to use.
 
-4. **Build the application**:
+3. **Build the application**:
 
 Make sure you have Go installed on your system. You can build GoAddons using the provided Makefile for convenience:
 
@@ -42,7 +42,7 @@ make release
 
 This command compiles the application and places the binary in the `bin` directory.
 
-3. **Run GoAddons**:
+4. **Run GoAddons**:
 
 ```bash
 ./bin/goaddons
