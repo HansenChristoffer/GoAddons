@@ -13,9 +13,11 @@
 
 package models
 
-type ELog struct {
-	Id      int
-	RunId   string
-	File    string
-	AddedAt []uint8
+type SystemConfig struct {
+	Elements []ConfigElement `toml:"config_elements"`
+}
+
+type ConfigElement struct {
+	Name  string `toml:"name"`
+	Value string `toml:"value"`
 }

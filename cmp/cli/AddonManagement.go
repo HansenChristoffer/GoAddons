@@ -14,38 +14,23 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
-	"goaddons/database"
-	"goaddons/models"
-	"goaddons/utils"
+	"github.com/BurntSushi/toml"
+	"goaddons/cmp/models"
+	"goaddons/cmp/utils"
 	"log"
-	"strconv"
 )
 
 func ListAllAddons() {
 	utils.ClearScreen()
 	fmt.Printf("  »»» All Addons «««\n\n")
 
-	addons, err := database.GetAllAddons(db)
+	addonsVault, err := models.GetAddonVaultInstance()
 	if err != nil {
-		log.Printf("cli.ListAllAddons :: Error while trying to get all addons -> %v\n", err)
-		return
+		log.Fatalf("Error initializing AddonVault: %v", err)
 	}
 
-	if addons == nil || len(addons) == 0 {
-		return
-	}
-
-	b, err := json.MarshalIndent(addons, "", "  ")
-	if err != nil {
-		log.Printf("cli.ListAllAddons :: Failed to marshal ->  %v\n", err)
-		return
-	}
-
-	if b != nil && utils.IsValidString(string(b)) {
-		fmt.Println(string(b))
-	}
+	addonsVault.PrintAddonVault()
 }
 
 func SearchForAddonByName() {
@@ -60,52 +45,55 @@ func SearchForAddonByName() {
 	}
 
 	// Search for and list addon, all by the argument 'name'
-	addons, err := database.GetAddonsByName(db, name)
+	addonsVault, err := models.GetAddonVaultInstance()
 	if err != nil {
-		log.Printf("cli.SearchForAddonByName :: Error while getting addon... -> %v\n", err)
+		log.Fatalf("Was unable to get instance of AddonVault")
+	}
+	if addonsVault.Length() == 0 {
 		return
 	}
 
-	if addons == nil || len(addons) == 0 {
-		return
-	}
+	for _, addon := range addonsVault.Addons {
+		if addon.Name == name {
+			b, err := toml.Marshal(&models.AddonConfig{Elements: []models.Addon{addon}})
+			if err != nil {
+				log.Printf("Error marshalling addon to TOML: %v", err)
+			}
 
-	b, err := json.MarshalIndent(addons, "", "  ")
-	if err != nil {
-		log.Printf("cli.SearchForAddonByName :: Failed to marshal ->  %v\n", err)
-		return
-	}
-
-	if b != nil && utils.IsValidString(string(b)) {
-		fmt.Println(string(b))
+			if b != nil && len(b) > 0 {
+				fmt.Println(string(b))
+			}
+		}
 	}
 }
 
 func AddNewAddon() {
+	const CALLER = "cli.AddNewAddon"
 	var addon models.Addon
 
 	fmt.Printf("\n  »»» Insert new addon ««« \n\n Addon name:\n > ")
-	addon.Name = userInput("cli.AddNewAddon")
-
-	fmt.Printf("\n What is the extracted addon directory is called\n > ")
-	addon.Filename = userInput("cli.AddNewAddon")
+	addon.Name = userInput(CALLER)
 
 	fmt.Printf("\n Addon about URL\n > ")
-	addon.Url = userInput("cli.AddNewAddon")
+	addon.Url = userInput(CALLER)
 
-	fmt.Printf("\n Addon download URL\n > ")
-	addon.DownloadUrl = userInput("cli.AddNewAddon")
-
+	fmt.Printf("\n »»» New Addon ««« \n")
+	fmt.Printf(" Name: %s\n URL: %s\n", addon.Name, addon.Url)
 	fmt.Printf("\n Do you want to commit? [y/N]\n > ")
-	input := userInput("cli.AddNewAddon")
+	input := userInput(CALLER)
 
 	switch input {
 	case "Y", "y":
-		r, err := database.InsertAddon(db, addon)
+		addonsVault, err := models.GetAddonVaultInstance()
 		if err != nil {
-			log.Printf("cli.addNewAddon :: Failed to insert addon(s)! -> %v\n", err)
+			log.Fatalf("Error initializing AddonVault: %v", err)
 		}
-		fmt.Printf(" Inserted total of %d addon(s) into TanukiDB!\n", r)
+
+		if err := addonsVault.Append(&addon); err != nil {
+			log.Printf("Error appending addon to vault: %v", err)
+			return
+		}
+		fmt.Printf(" Successfully inserted addon(s)!")
 	case "N", "n":
 		fmt.Println(" Stopped insertion of new addon(s)!")
 	default:
@@ -116,30 +104,29 @@ func AddNewAddon() {
 func RemoveAddon() {
 	utils.ClearScreen()
 
-	fmt.Printf("\n  »»» Remove addon «««\n\n Addon ID\n > ")
-	id := userInput("cli.RemoveAddon")
+	fmt.Printf("\n  »»» Remove addon «««\n\n Addon name\n > ")
+	name := userInput("cli.RemoveAddon")
 
-	if !utils.IsValidString(id) {
-		log.Printf("cli.RemoveAddon :: The 'ID' argument is not valid! -> [%s]\n", id)
+	if !utils.IsValidString(name) {
+		log.Printf("cli.RemoveAddon :: The 'name' argument is not valid! -> [%s]\n", name)
 		return
 	}
 
-	idNum, err := strconv.Atoi(id)
-	if err != nil {
-		log.Printf("cli.RemoveAddon :: Error while trying to convert ID to its decimal equivalent! -> %v\n", err)
-		return
-	}
-
+	fmt.Printf("\n Will try to remove addon with the name: %s\n", name)
 	fmt.Printf("\n Do you want to commit? [y/N]\n > ")
 	input := userInput("cli.RemoveAddon")
-
 	switch input {
 	case "Y", "y":
-		r, err := database.RemoveAddonByID(db, idNum)
+		addonsVault, err := models.GetAddonVaultInstance()
 		if err != nil {
-			log.Printf("cli.RemoveAddon :: Failed to remove addon(s)! -> %v\n", err)
+			log.Fatalf("Error initializing AddonVault: %v", err)
 		}
-		fmt.Printf(" Removed total of %d addon(s) from TanukiDB!", r)
+		beenRemoved, err := addonsVault.Remove(name)
+		if beenRemoved {
+			fmt.Printf(" Successfully removed addon with name: %s", name)
+		} else {
+			fmt.Printf(" Failed to remove addon with name: %s -> %v\n", name, err)
+		}
 	case "N", "n":
 		fmt.Println(" Stopped deletion of addon(s)!")
 	default:

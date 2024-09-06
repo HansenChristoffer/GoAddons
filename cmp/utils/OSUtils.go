@@ -11,15 +11,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package models
+package utils
 
-type Addon struct {
-	Id             int     `json:"id,omitempty"`
-	Name           string  `json:"name,omitempty"`
-	Filename       string  `json:"filename,omitempty"`
-	Url            string  `json:"url,omitempty"`
-	DownloadUrl    string  `json:"download_url,omitempty"`
-	LastDownloaded []uint8 `json:"last_downloaded,omitempty"`
-	LastModifiedAt []uint8 `json:"last_modified_at,omitempty"`
-	AddedAt        []uint8 `json:"addedAt,omitempty"`
+import "os"
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return err == nil
 }

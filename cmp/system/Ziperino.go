@@ -78,6 +78,14 @@ func unzipFile(f *zip.File, destination string) error {
 		return err
 	}
 
+	// Force overwrite: If the file already exists, remove it
+	if _, err := os.Stat(sourceFilePath); err == nil {
+		err = os.Remove(sourceFilePath)
+		if err != nil {
+			return fmt.Errorf("system:Ziperino.unzipFile() -> could not remove existing file: %v", err)
+		}
+	}
+
 	destinationFile, err := os.OpenFile(sourceFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 	if err != nil {
 		return err

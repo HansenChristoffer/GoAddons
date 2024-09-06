@@ -14,22 +14,19 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	"goaddons/cli"
-	"goaddons/updater"
+	"goaddons/cmp/cli"
+	"goaddons/cmp/updater"
 	"goaddons/version"
 	"log"
 	"os"
 )
 
-var db *sql.DB
-
 func main() {
 	if len(os.Args) >= 2 {
 		switch os.Args[1] {
 		case "--updater", "-u":
-			updater.StartUpdater(db)
+			updater.StartUpdater()
 		case "--cli", "c":
 			cli.StartCli()
 		case "--version", "-v":

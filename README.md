@@ -1,11 +1,11 @@
 # GoAddons
 
-GoAddons is a command-line interface (CLI) application designed to enhance the World of Warcraft (WoW) experience by simplifying the management of game addons. Leveraging the power of a database, GoAddons facilitates the effortless discovery, update, and management of WoW addons.
+GoAddons is a command-line interface (CLI) application designed to enhance the World of Warcraft (WoW) experience by simplifying the management of game addons. GoAddons facilitates the effortless update and management of WoW addons.
 
 ## Features
 
 - **Addon Management**: Easily list, search, add, or remove WoW addons to customize your gaming setup.
-- **Updater Menu**: ~~Automatically checks and~~ updates your addons to the latest versions, ensuring you have the latest features and fixes.
+- **Updater Menu**: Updates your addons to the latest versions, ensuring you have the latest features and fixes.
 - **About**: Learn more about GoAddons.
 
 ## Getting Started
@@ -22,12 +22,12 @@ cd GoAddons
 2. **Docker containers**:
 
 Make sure you have Docker/Docker-engine and Docker-compose installed on your system. You will need to edit the docker-compose.yml file to fit your system.
-The "kaasufouji-extract-volume" device path needs to be your systems path to your addons directory. Finally, change any [YOUR_HOST_NAME_HERE] to your actual user's name.
+The "goaddons-extract-volume" device path needs to be your systems path to your addons directory. Finally, change any [YOUR_HOST_NAME_HERE] to your actual user's name.
 
-Now, run the following command:
+Now, run the following script:
 
 ```bash
-docker-compose up -d
+./start_containers.sh
 ```
 
 This command will pull the relevant Docker images, create volumes and create containers that GoAddons will need to use.
@@ -86,7 +86,7 @@ In the Addon Management menu, you can:
 
 ### Updater Menu
 
-Start the updater ~~to check for~~ and apply updates to your addons.
+Start the updater and apply updates to your addons.
 
 ### About
 

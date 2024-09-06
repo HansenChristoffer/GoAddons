@@ -1,0 +1,11 @@
+[[config_elements]]
+name = "extract.addon.path"
+value = "/home/[YOUR_HOST_NAME_HERE]/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns"
+
+[[config_elements]]
+name = "browser.download.dir"
+value = "/home/[YOUR_HOST_NAME_HERE]/Downloads/goaddons_download"
+
+[[config_elements]]
+name = "docker.url"
+value = "ws://localhost:9222"
