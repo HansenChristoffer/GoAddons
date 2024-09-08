@@ -13,9 +13,18 @@
 
 package models
 
-type RLog struct {
-	Id      int
-	RunId   string
-	Service string
-	AddedAt []uint8
+type AddonConfig struct {
+	Elements []Addon `toml:"addon"`
+}
+
+type Addon struct {
+	Name string `toml:"name"`
+	Url  string `toml:"url"`
+}
+
+func (a *Addon) Validate() bool {
+	if len(a.Name) == 0 || len(a.Url) == 0 {
+		return false
+	}
+	return true
 }

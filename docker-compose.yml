@@ -2,28 +2,27 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-version: '3.1'
-
 services:
   goaddons_cdp:
     image: chromedp/headless-shell
     container_name: goaddons_cdp
     ports:
       - "9222:9222"
+    user: "${UID}:${GID}"  # Passes the user ID and group ID of your host user
     volumes:
-      - goaddons-addons-volume:/home/[YOUR_HOST_NAME_HERE]/Downloads/goaddons_download
-      - goaddons-extract-volume:/home/[YOUR_HOST_NAME_HERE]/Downloads/goaddons_extract
+      - goaddons-addons-volume:/home/miso/Downloads/goaddons_download
+      - goaddons-extract-volume:/home/miso/Downloads/goaddons_extract
 
 volumes:
-  kaasufouji-addons-volume:
+  goaddons-addons-volume:
     driver: local
     driver_opts:
       type: none
-      device: /home/[YOUR_HOST_NAME_HERE]/Downloads/goaddons_download
+      device: /home/miso/Downloads/goaddons_download
       o: bind
-  kaasufouji-extract-volume:
+  goaddons-extract-volume:
     driver: local
     driver_opts:
       type: none
-      device: "/home/[YOUR_HOST_NAME_HERE]/ssd/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns"
+      device: "/home/miso/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns"
       o: bind

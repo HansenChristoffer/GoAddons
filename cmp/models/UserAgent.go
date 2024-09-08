@@ -13,7 +13,20 @@
 
 package models
 
-type SystemConfig struct {
-	Name string
-	Path string
+import "math/rand"
+
+type UserAgentConfig struct {
+	Elements []UserAgent `toml:"user_agent"`
+}
+
+type UserAgent struct {
+	Id    string `toml:"id"`
+	Value string `toml:"value"`
+}
+
+func RandomUserAgent(userAgents []UserAgent) *UserAgent {
+	if len(userAgents) == 0 {
+		return nil
+	}
+	return &userAgents[rand.Intn(len(userAgents))]
 }
